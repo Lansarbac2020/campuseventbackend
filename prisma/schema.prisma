@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  ORGANIZER
+  ADMIN
+}
+
+enum EventStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum RegistrationStatus {
+  REGISTERED
+  CANCELLED
+  ATTENDED
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  name          String
+  role          UserRole       @default(STUDENT)
+  studentId     String?        @unique
+  clubName      String?
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  // Relations
+  eventsCreated Event[]        @relation("EventCreator")
+  registrations Registration[]
+  
+  @@index([email])
+  @@index([role])
+}
+
+model Event {
+  id              String         @id @default(uuid())
+  title           String
+  description     String
+  imageUrl        String?
+  location        String
+  startDate       DateTime
+  endDate         DateTime
+  maxAttendees    Int
+  currentAttendees Int           @default(0)
+  status          EventStatus    @default(PENDING)
+  category        String
+  tags            String[]
+  createdById     String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  // Relations
+  createdBy       User           @relation("EventCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  registrations   Registration[]
+  
+  @@index([status])
+  @@index([startDate])
+  @@index([createdById])
+}
+
+model Registration {
+  id              String             @id @default(uuid())
+  userId          String
+  eventId         String
+  status          RegistrationStatus @default(REGISTERED)
+  qrCode          String             @unique
+  registeredAt    DateTime           @default(now())
+  cancelledAt     DateTime?
+  attendedAt      DateTime?
+  
+  // Relations
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event           Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, eventId])
+  @@index([userId])
+  @@index([eventId])
+  @@index([qrCode])
+}

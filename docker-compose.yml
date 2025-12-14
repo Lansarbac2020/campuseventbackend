@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: campus-events-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: campususer
+      POSTGRES_PASSWORD: campuspass123
+      POSTGRES_DB: campus_events
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - campus-network
+
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: campus-events-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: "postgresql://campususer:campuspass123@postgres:5432/campus_events?schema=public"
+      JWT_SECRET: "your-super-secret-jwt-key-change-this-in-production"
+      JWT_EXPIRES_IN: "7d"
+      PORT: 5000
+      NODE_ENV: "production"
+      UPLOAD_DIR: "uploads"
+      MAX_FILE_SIZE: 5242880
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+    volumes:
+      - ./uploads:/app/uploads
+    networks:
+      - campus-network
+    command: >
+      sh -c "
+        npx prisma migrate deploy &&
+        npx prisma db seed &&
+        npm start
+      "
+
+volumes:
+  postgres_data:
+
+networks:
+  campus-network:
+    driver: bridge
