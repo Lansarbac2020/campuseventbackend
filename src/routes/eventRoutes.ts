@@ -7,6 +7,8 @@ import {
   deleteEvent,
   getMyEvents,
   createEventValidation,
+  checkAvailability,
+  getVenueSchedule,
 } from '../controllers/eventController';
 import { authenticate, authorize } from '../middleware/auth';
 import { upload } from '../middleware/upload';
@@ -15,6 +17,8 @@ const router = express.Router();
 
 // Public routes
 router.get('/', getEvents);
+router.get('/check-availability', checkAvailability);
+router.get('/venue-schedule', getVenueSchedule);
 router.get('/:id', getEventById);
 
 // Protected routes - Organizers only
@@ -44,3 +48,4 @@ router.delete(
 );
 
 export default router;
+
