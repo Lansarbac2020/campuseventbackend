@@ -1,7 +1,6 @@
 import { Response } from 'express';
 import { PrismaClient, RegistrationStatus, EventStatus } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth';
-import { generateQRCode, generateTicketData } from '../utils/qrcode';
 
 const prisma = new PrismaClient();
 
@@ -76,14 +75,14 @@ export const registerForEvent = async (req: AuthRequest, res: Response): Promise
       },
     });
 
-    // Generate QR code with registration data
-    const ticketData = generateTicketData(registration.id, eventId, userId);
-    const qrCodeDataURL = await generateQRCode(ticketData);
+    // Generate simple QR code identifier (just the registration ID)
+    // The actual QR code image will be generated on-demand in the frontend
+    const qrCodeIdentifier = `REG-${registration.id}`;
 
-    // Update registration with QR code
+    // Update registration with QR code identifier
     const updatedRegistration = await prisma.registration.update({
       where: { id: registration.id },
-      data: { qrCode: qrCodeDataURL },
+      data: { qrCode: qrCodeIdentifier },
       include: {
         event: {
           select: {
