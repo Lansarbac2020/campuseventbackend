@@ -120,6 +120,39 @@ export const getPendingEvents = async (_req: AuthRequest, res: Response): Promis
   }
 };
 
+export const getApprovedEvents = async (_req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const events = await prisma.event.findMany({
+      where: {
+        status: EventStatus.APPROVED,
+      },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            clubName: true,
+          },
+        },
+        _count: {
+          select: {
+            registrations: true,
+          },
+        },
+      },
+      orderBy: {
+        startDate: 'desc',
+      },
+    });
+
+    res.json({ events });
+  } catch (error) {
+    console.error('Get approved events error:', error);
+    res.status(500).json({ error: 'Failed to fetch approved events' });
+  }
+};
+
 export const getAllUsers = async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
     const users = await prisma.user.findMany({

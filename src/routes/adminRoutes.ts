@@ -3,6 +3,7 @@ import {
   approveEvent,
   rejectEvent,
   getPendingEvents,
+  getApprovedEvents,
   getAllUsers,
   toggleUserStatus,
   getDashboardStats,
@@ -17,6 +18,7 @@ router.use(authorize('ADMIN'));
 
 // Event management
 router.get('/events/pending', getPendingEvents);
+router.get('/events/approved', getApprovedEvents);
 router.put('/events/:id/approve', approveEvent);
 router.put('/events/:id/reject', rejectEvent);
 
